@@ -126,7 +126,7 @@ var helpers = {
       if(this.props.infinite === false &&
         (index < 0 || index >= this.state.slideCount)) {
         return;
-      } 
+      }
 
       //  Shifting targetSlide back into the range
       if (index < 0) {
@@ -262,7 +262,9 @@ var helpers = {
         currentSlide: currentSlide,
         trackStyle: getTrackAnimateCSS(assign({}, this.props, this.state, {currentSlide: currentSlide, left: targetLeft}))
       }, function () {
-        this.animationEndCallback = setTimeout(callback, this.props.speed);
+        const slideComponent = this.props.children[currentSlide]
+        const multiplier = slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
+        this.animationEndCallback = setTimeout(callback, this.props.speed * multiplier);
       });
 
     }
