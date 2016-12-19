@@ -1124,10 +1124,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        slideIndex: this.state.currentSlide,
 	        trackRef: this.track
 	      }, props, this.state));
-	      // getCSS function needs previously set state
-	      var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
 
-	      this.setState({ trackStyle: trackStyle });
+	      if (props.useCSS === false) {
+	        // getCSS function needs previously set state
+	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
+
+	        this.setState({ trackStyle: trackStyle });
+	      } else {
+	        // getCSS function needs previously set state
+	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, props, this.state, { currentSlide: this.state.currentSlide, left: targetLeft }));
+	        this.setState({ trackStyle: trackStyle });
+	      }
 
 	      this.autoPlay(); // once we're set up, trigger the initial autoplay.
 	    });
@@ -1167,9 +1174,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        trackRef: this.track
 	      }, props, this.state));
 	      // getCSS function needs previously set state
-	      var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
+	      if (props.useCSS === false) {
+	        // getCSS function needs previously set state
+	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
 
-	      this.setState({ trackStyle: trackStyle });
+	        this.setState({ trackStyle: trackStyle });
+	      } else {
+	        // getCSS function needs previously set state
+	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, props, this.state, { currentSlide: this.state.currentSlide, left: targetLeft }));
+	        this.setState({ trackStyle: trackStyle });
+	      }
 	    });
 	  },
 	  getWidth: function getWidth(elem) {
@@ -1192,7 +1206,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this = this;
 
 	    // Functionality of animateSlide and postSlide is merged into this function
-	    // console.log('slideHandler', index);
 	    var targetSlide, currentSlide;
 	    var targetLeft, currentLeft;
 	    var callback;
@@ -1208,7 +1221,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    if (this.props.fade) {
 	      currentSlide = this.state.currentSlide;
-
 	      // Don't change slide if it's not infite and current slide is the first or last slide.
 	      if (this.props.infinite === false && (index < 0 || index >= this.state.slideCount)) {
 	        return;
@@ -1244,7 +1256,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        currentSlide: targetSlide,
 	        previousSlide: currentSlide
 	      }, function () {
-	        this.animationEndCallback = setTimeout(callback, this.props.speed);
+	        this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
 	      });
 
 	      if (this.props.beforeChange) {
@@ -1330,7 +1342,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var nextStateChanges = {
 	        animating: false,
 	        currentSlide: currentSlide,
-	        trackStyle: (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: currentLeft }, this.props, this.state)),
+	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, this.props, this.state, { currentSlide: currentSlide, left: currentLeft })),
 	        swipeLeft: null
 	      };
 
@@ -1341,15 +1353,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        delete _this.animationEndCallback;
 	      };
-
 	      this.setState({
 	        animating: true,
 	        currentSlide: currentSlide,
 	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, this.props, this.state, { currentSlide: currentSlide, left: targetLeft }))
 	      }, function () {
-	        var slideComponent = this.props.children[currentSlide];
-	        var multiplier = slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
-	        this.animationEndCallback = setTimeout(callback, this.props.speed * multiplier);
+	        this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
 	      });
 	    }
 
@@ -1407,6 +1416,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        autoPlayTimer: null
 	      });
 	    }
+	  },
+	  getMultiplier: function getMultiplier(props, currentSlide) {
+	    var slideComponent = props.children[currentSlide];
+	    return slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
 	  }
 	};
 
