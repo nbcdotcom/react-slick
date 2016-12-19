@@ -39,10 +39,19 @@ var helpers = {
         slideIndex: this.state.currentSlide,
         trackRef: this.track
       }, props, this.state));
-      // getCSS function needs previously set state
-      var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
 
-      this.setState({trackStyle: trackStyle});
+      if (props.useCSS === false) {
+        // getCSS function needs previously set state
+        var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
+
+        this.setState({trackStyle: trackStyle});
+      }
+      else {
+        // getCSS function needs previously set state
+        var trackStyle = getTrackAnimateCSS(assign({}, props, this.state, {currentSlide: this.state.currentSlide, left: targetLeft}))
+        this.setState({trackStyle: trackStyle});
+      }
+
 
       this.autoPlay(); // once we're set up, trigger the initial autoplay.
     });
@@ -83,9 +92,17 @@ var helpers = {
         trackRef: this.track
       }, props, this.state));
       // getCSS function needs previously set state
-      var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
+      if (props.useCSS === false) {
+        // getCSS function needs previously set state
+        var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
 
-      this.setState({trackStyle: trackStyle});
+        this.setState({trackStyle: trackStyle});
+      }
+      else {
+        // getCSS function needs previously set state
+        var trackStyle = getTrackAnimateCSS(assign({}, props, this.state, {currentSlide: this.state.currentSlide, left: targetLeft}))
+        this.setState({trackStyle: trackStyle});
+      }
     });
   },
   getWidth: function getWidth(elem) {
@@ -105,10 +122,10 @@ var helpers = {
   },
   slideHandler: function (index) {
     // Functionality of animateSlide and postSlide is merged into this function
-    // console.log('slideHandler', index);
     var targetSlide, currentSlide;
     var targetLeft, currentLeft;
     var callback;
+
 
     if (this.props.waitForAnimate && this.state.animating) {
       // Fix for NBC: We needed to reset the animating state here so that
@@ -121,7 +138,6 @@ var helpers = {
 
     if (this.props.fade) {
       currentSlide = this.state.currentSlide;
-
       // Don't change slide if it's not infite and current slide is the first or last slide.
       if(this.props.infinite === false &&
         (index < 0 || index >= this.state.slideCount)) {
@@ -158,7 +174,7 @@ var helpers = {
         currentSlide: targetSlide,
         previousSlide: currentSlide
       }, function () {
-        this.animationEndCallback = setTimeout(callback, this.props.speed);
+        this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
       });
 
       if (this.props.beforeChange) {
@@ -245,7 +261,7 @@ var helpers = {
       var nextStateChanges = {
         animating: false,
         currentSlide: currentSlide,
-        trackStyle: getTrackCSS(assign({left: currentLeft}, this.props, this.state)),
+        trackStyle: getTrackAnimateCSS(assign({}, this.props, this.state, { currentSlide, left: currentLeft })),
         swipeLeft: null
       };
 
@@ -256,15 +272,12 @@ var helpers = {
         }
         delete this.animationEndCallback;
       };
-
       this.setState({
         animating: true,
         currentSlide: currentSlide,
         trackStyle: getTrackAnimateCSS(assign({}, this.props, this.state, {currentSlide: currentSlide, left: targetLeft}))
       }, function () {
-        const slideComponent = this.props.children[currentSlide]
-        const multiplier = slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
-        this.animationEndCallback = setTimeout(callback, this.props.speed * multiplier);
+        this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
       });
 
     }
@@ -323,6 +336,10 @@ var helpers = {
         autoPlayTimer: null
       });
     }
+  },
+  getMultiplier: function(props, currentSlide) {
+    const slideComponent = props.children[currentSlide]
+    return slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
   }
 };
 
