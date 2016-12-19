@@ -1,6 +1,6 @@
 {
   "name": "react-slick-nbc",
-  "version": "0.14.3-nbc",
+  "version": "0.14.4-nbc",
   "description": " React port of slick carousel",
   "main": "./lib",
   "scripts": {
