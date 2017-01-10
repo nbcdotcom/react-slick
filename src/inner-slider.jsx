@@ -52,7 +52,10 @@ export var InnerSlider = React.createClass({
   },
   componentDidMount: function componentDidMount() {
     // Hack for autoplay -- Inspect Later
-    this.initialize(this.props);
+    this.initialize(Object.assign({}, this.props, {
+      track: this.track,
+      list: this.list
+    }));
     this.adaptHeight();
 
     // To support server-side rendering

@@ -285,7 +285,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  componentDidMount: function componentDidMount() {
 	    // Hack for autoplay -- Inspect Later
-	    this.initialize(this.props);
+	    this.initialize(_extends({}, this.props, {
+	      track: this.track,
+	      list: this.list
+	    }));
 	    this.adaptHeight();
 
 	    // To support server-side rendering
@@ -481,10 +484,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _trackHelper = __webpack_require__(5);
 
-	var _helpers = __webpack_require__(8);
-
-	var _helpers2 = _interopRequireDefault(_helpers);
-
 	var _objectAssign = __webpack_require__(7);
 
 	var _objectAssign2 = _interopRequireDefault(_objectAssign);
@@ -588,10 +587,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var swipeLeft;
 	    var curLeft, positionOffset;
 	    var touchObject = this.state.touchObject;
-
 	    curLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
 	      slideIndex: this.state.currentSlide,
-	      trackRef: this.track
+	      trackRef: this.track,
+	      listRef: this.list
 	    }, this.props, this.state));
 	    touchObject.curX = e.touches ? e.touches[0].pageX : e.clientX;
 	    touchObject.curY = e.touches ? e.touches[0].pageY : e.clientY;
@@ -641,7 +640,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.setState({
 	      touchObject: touchObject,
 	      swipeLeft: swipeLeft,
-	      trackStyle: (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: swipeLeft }, this.props, this.state))
+	      trackStyle: (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({}, { left: swipeLeft }, this.props, this.state))
 	    });
 
 	    if (Math.abs(touchObject.curX - touchObject.startX) < Math.abs(touchObject.curY - touchObject.startY) * 0.8) {
@@ -784,13 +783,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.slideHandler(slideCount);
 	    } else {
 	      // Adjust the track back to it's original position.
-	      var currentLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
+	      var currentLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({}, {
 	        slideIndex: this.state.currentSlide,
-	        trackRef: this.track
+	        trackRef: this.track,
+	        listRef: this.list
 	      }, this.props, this.state));
 
 	      this.setState({
-	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({ left: currentLeft }, this.props, this.state))
+	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, { left: currentLeft }, this.props, this.state))
 	      });
 	    }
 	  },
@@ -886,7 +886,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var slideComponent = spec.children[spec.currentSlide];
 	  var multiplier = slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
-
 	  var style = getTrackCSS(spec);
 	  // useCSS is true by default so it can be undefined
 	  style.WebkitTransition = '-webkit-transform ' + spec.speed * multiplier + 'ms ' + spec.cssEase;
@@ -894,9 +893,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return style;
 	};
 
-	var getTrackLeft = exports.getTrackLeft = function getTrackLeft(spec) {
+	var getLastSlideVisibility = function getLastSlideVisibility(spec) {
+	  checkSpecKeys(spec, ['trackRef', 'listRef', 'children']);
+	  var track = _reactDom2.default.findDOMNode(spec.trackRef);
+	  var list = _reactDom2.default.findDOMNode(spec.listRef);
+	  var listRect = list.getBoundingClientRect();
+	  var lastSlide = track.children[track.children.length - 1];
+	  var lastSlideRect = lastSlide.getBoundingClientRect();
+	  var rightVisible = lastSlideRect.right <= listRect.right;
+	  var partiallyVisible = lastSlideRect.right - listRect.right < lastSlideRect.width && !rightVisible;
+	  return { rightVisible: rightVisible, partiallyVisible: partiallyVisible, lastSlideRect: lastSlideRect };
+	};
 
-	  checkSpecKeys(spec, ['slideIndex', 'trackRef', 'infinite', 'centerMode', 'slideCount', 'slidesToShow', 'slidesToScroll', 'slideWidth', 'listWidth', 'variableWidth', 'slideHeight']);
+	var getTrackLeft = exports.getTrackLeft = function getTrackLeft(spec) {
+	  checkSpecKeys(spec, ['slideIndex', 'trackRef', 'listRef', 'infinite', 'centerMode', 'slideCount', 'slidesToShow', 'slidesToScroll', 'slideWidth', 'listWidth', 'variableWidth', 'slideHeight']);
 
 	  var slideOffset = 0;
 	  var targetLeft;
@@ -932,7 +942,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }
-
 	  if (spec.centerMode) {
 	    if (spec.infinite) {
 	      slideOffset += spec.slideWidth * Math.floor(spec.slidesToShow / 2);
@@ -955,14 +964,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      targetSlideIndex = spec.slideIndex + spec.slidesToShow;
 	      targetSlide = _reactDom2.default.findDOMNode(spec.trackRef).childNodes[targetSlideIndex];
 	    }
+
 	    targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
+
+	    var visibility = getLastSlideVisibility(spec);
+	    // if the last slide is partially visible and not fully visible
+	    if (!spec.infinite && visibility.partiallyVisible && !visibility.rightVisible) {
+	      targetLeft = targetSlide ? (targetSlide.offsetLeft - (spec.listRef.getBoundingClientRect().right - visibility.lastSlideRect.left)) * -1 : 0;
+	    }
 	    if (spec.centerMode === true) {
 	      if (spec.infinite === false) {
 	        targetSlide = _reactDom2.default.findDOMNode(spec.trackRef).children[spec.slideIndex];
 	      } else {
 	        targetSlide = _reactDom2.default.findDOMNode(spec.trackRef).children[spec.slideIndex + spec.slidesToShow + 1];
 	      }
-
 	      targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
 	      targetLeft += (spec.listWidth - targetSlide.offsetWidth) / 2;
 	    }
@@ -1122,20 +1137,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var targetLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
 	        slideIndex: this.state.currentSlide,
+	        listRef: this.list,
 	        trackRef: this.track
 	      }, props, this.state));
 
 	      if (props.useCSS === false) {
 	        // getCSS function needs previously set state
-	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
+	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({}, { left: targetLeft }, props, this.state));
 
 	        this.setState({ trackStyle: trackStyle });
 	      } else {
 	        // getCSS function needs previously set state
-	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, props, this.state, { currentSlide: this.state.currentSlide, left: targetLeft }));
+	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, { currentSlide: this.state.currentSlide, left: targetLeft }, props, this.state));
 	        this.setState({ trackStyle: trackStyle });
 	      }
-
 	      this.autoPlay(); // once we're set up, trigger the initial autoplay.
 	    });
 	  },
@@ -1168,20 +1183,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      slideHeight: slideHeight,
 	      listHeight: listHeight
 	    }, function () {
-
 	      var targetLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
 	        slideIndex: this.state.currentSlide,
-	        trackRef: this.track
+	        trackRef: this.track,
+	        listRef: this.list
 	      }, props, this.state));
 	      // getCSS function needs previously set state
 	      if (props.useCSS === false) {
 	        // getCSS function needs previously set state
-	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: targetLeft }, props, this.state));
+	        var trackStyle = (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({}, { left: targetLeft }, props, this.state));
 
 	        this.setState({ trackStyle: trackStyle });
 	      } else {
 	        // getCSS function needs previously set state
-	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, props, this.state, { currentSlide: this.state.currentSlide, left: targetLeft }));
+	        var trackStyle = (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, { currentSlide: this.state.currentSlide, left: targetLeft }, props, this.state));
 	        this.setState({ trackStyle: trackStyle });
 	      }
 	    });
@@ -1287,15 +1302,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      currentSlide = targetSlide;
 	    }
-
 	    targetLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
 	      slideIndex: targetSlide,
-	      trackRef: this.track
+	      trackRef: this.track,
+	      listRef: this.list
 	    }, this.props, this.state));
 
 	    currentLeft = (0, _trackHelper.getTrackLeft)((0, _objectAssign2.default)({
 	      slideIndex: currentSlide,
-	      trackRef: this.track
+	      trackRef: this.track,
+	      listRef: this.list
 	    }, this.props, this.state));
 
 	    if (this.props.infinite === false) {
@@ -1331,7 +1347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      this.setState({
 	        currentSlide: currentSlide,
-	        trackStyle: (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({ left: currentLeft }, this.props, this.state))
+	        trackStyle: (0, _trackHelper.getTrackCSS)((0, _objectAssign2.default)({}, { currentSlide: currentSlide, left: targetLeft }, this.props, this.state))
 	      }, function () {
 	        if (this.props.afterChange) {
 	          this.props.afterChange(currentSlide);
@@ -1342,7 +1358,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var nextStateChanges = {
 	        animating: false,
 	        currentSlide: currentSlide,
-	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, this.props, this.state, { currentSlide: currentSlide, left: currentLeft })),
+	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, { currentSlide: currentSlide, left: targetLeft }, this.props, this.state)),
 	        swipeLeft: null
 	      };
 
@@ -1356,7 +1372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState({
 	        animating: true,
 	        currentSlide: currentSlide,
-	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, this.props, this.state, { currentSlide: currentSlide, left: targetLeft }))
+	        trackStyle: (0, _trackHelper.getTrackAnimateCSS)((0, _objectAssign2.default)({}, { currentSlide: currentSlide, left: targetLeft }, this.props, this.state))
 	      }, function () {
 	        this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
 	      });
