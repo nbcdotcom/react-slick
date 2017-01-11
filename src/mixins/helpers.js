@@ -37,22 +37,21 @@ var helpers = {
 
       var targetLeft = getTrackLeft(assign({
         slideIndex: this.state.currentSlide,
+        listRef: this.list,
         trackRef: this.track
       }, props, this.state));
 
       if (props.useCSS === false) {
         // getCSS function needs previously set state
-        var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
+        var trackStyle = getTrackCSS(assign({}, {left: targetLeft}, props, this.state));
 
         this.setState({trackStyle: trackStyle});
       }
       else {
         // getCSS function needs previously set state
-        var trackStyle = getTrackAnimateCSS(assign({}, props, this.state, {currentSlide: this.state.currentSlide, left: targetLeft}))
+        var trackStyle = getTrackAnimateCSS(assign({}, {currentSlide: this.state.currentSlide, left: targetLeft}, props, this.state))
         this.setState({trackStyle: trackStyle});
       }
-
-
       this.autoPlay(); // once we're set up, trigger the initial autoplay.
     });
   },
@@ -86,21 +85,21 @@ var helpers = {
       slideHeight,
       listHeight,
     }, function () {
-
       var targetLeft = getTrackLeft(assign({
         slideIndex: this.state.currentSlide,
-        trackRef: this.track
+        trackRef: this.track,
+        listRef: this.list
       }, props, this.state));
       // getCSS function needs previously set state
       if (props.useCSS === false) {
         // getCSS function needs previously set state
-        var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
+        var trackStyle = getTrackCSS(assign({}, {left: targetLeft}, props, this.state));
 
         this.setState({trackStyle: trackStyle});
       }
       else {
         // getCSS function needs previously set state
-        var trackStyle = getTrackAnimateCSS(assign({}, props, this.state, {currentSlide: this.state.currentSlide, left: targetLeft}))
+        var trackStyle = getTrackAnimateCSS(assign({}, {currentSlide: this.state.currentSlide, left: targetLeft}, props, this.state));
         this.setState({trackStyle: trackStyle});
       }
     });
@@ -205,15 +204,16 @@ var helpers = {
     } else {
       currentSlide = targetSlide;
     }
-
     targetLeft = getTrackLeft(assign({
       slideIndex: targetSlide,
-      trackRef: this.track
+      trackRef: this.track,
+      listRef: this.list
     }, this.props, this.state));
 
     currentLeft = getTrackLeft(assign({
       slideIndex: currentSlide,
-      trackRef: this.track
+      trackRef: this.track,
+      listRef: this.list
     }, this.props, this.state));
 
     if (this.props.infinite === false) {
@@ -249,7 +249,7 @@ var helpers = {
 
       this.setState({
         currentSlide: currentSlide,
-        trackStyle: getTrackCSS(assign({left: currentLeft}, this.props, this.state))
+        trackStyle: getTrackCSS(assign({}, {currentSlide, left: targetLeft}, this.props, this.state))
       }, function () {
         if (this.props.afterChange) {
           this.props.afterChange(currentSlide);
@@ -261,7 +261,7 @@ var helpers = {
       var nextStateChanges = {
         animating: false,
         currentSlide: currentSlide,
-        trackStyle: getTrackAnimateCSS(assign({}, this.props, this.state, { currentSlide, left: currentLeft })),
+        trackStyle: getTrackAnimateCSS(assign({}, {currentSlide, left: targetLeft}, this.props, this.state)),
         swipeLeft: null
       };
 
@@ -275,7 +275,7 @@ var helpers = {
       this.setState({
         animating: true,
         currentSlide: currentSlide,
-        trackStyle: getTrackAnimateCSS(assign({}, this.props, this.state, {currentSlide: currentSlide, left: targetLeft}))
+        trackStyle: getTrackAnimateCSS(assign({}, {currentSlide, left: targetLeft}, this.props, this.state))
       }, function () {
         this.animationEndCallback = setTimeout(callback, this.props.speed * this.getMultiplier(this.props, currentSlide));
       });

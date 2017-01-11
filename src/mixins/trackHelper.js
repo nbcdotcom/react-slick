@@ -66,7 +66,6 @@ export var getTrackAnimateCSS = function (spec) {
 
   var slideComponent = spec.children[spec.currentSlide];
   var multiplier = slideComponent && slideComponent.props['data-speed-multiplier'] || 1;
-
   var style = getTrackCSS(spec);
   // useCSS is true by default so it can be undefined
   style.WebkitTransition = '-webkit-transform ' + spec.speed * multiplier + 'ms ' + spec.cssEase;
@@ -74,10 +73,23 @@ export var getTrackAnimateCSS = function (spec) {
   return style;
 };
 
-export var getTrackLeft = function (spec) {
-
+var getLastSlideVisibility = function (spec) {
   checkSpecKeys(spec, [
-   'slideIndex', 'trackRef', 'infinite', 'centerMode', 'slideCount', 'slidesToShow',
+    'trackRef', 'listRef', 'children'
+  ]);
+  const track = ReactDOM.findDOMNode(spec.trackRef);
+  const list = ReactDOM.findDOMNode(spec.listRef);
+  const listRect = list.getBoundingClientRect();
+  const lastSlide = track.children[track.children.length - 1];
+  const lastSlideRect = lastSlide.getBoundingClientRect();
+  const rightVisible = lastSlideRect.right <= listRect.right;
+  const partiallyVisible = ((lastSlideRect.right - listRect.right) < lastSlideRect.width) && !rightVisible;
+  return {rightVisible, partiallyVisible, lastSlideRect};
+}
+
+export var getTrackLeft = function (spec) {
+  checkSpecKeys(spec, [
+   'slideIndex', 'trackRef', 'listRef', 'infinite', 'centerMode', 'slideCount', 'slidesToShow',
    'slidesToScroll', 'slideWidth', 'listWidth', 'variableWidth', 'slideHeight']);
 
   var slideOffset = 0;
@@ -114,9 +126,6 @@ export var getTrackLeft = function (spec) {
       }
     }
   }
-
-
-
   if (spec.centerMode) {
     if(spec.infinite) {
       slideOffset += spec.slideWidth * Math.floor(spec.slidesToShow / 2);
@@ -139,18 +148,24 @@ export var getTrackLeft = function (spec) {
           targetSlideIndex = (spec.slideIndex + spec.slidesToShow);
           targetSlide = ReactDOM.findDOMNode(spec.trackRef).childNodes[targetSlideIndex];
       }
-      targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
-      if (spec.centerMode === true) {
-          if(spec.infinite === false) {
-              targetSlide = ReactDOM.findDOMNode(spec.trackRef).children[spec.slideIndex];
-          } else {
-              targetSlide = ReactDOM.findDOMNode(spec.trackRef).children[(spec.slideIndex + spec.slidesToShow + 1)];
-          }
 
-          targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
-          targetLeft += (spec.listWidth - targetSlide.offsetWidth) / 2;
+      targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
+
+      const visibility = getLastSlideVisibility(spec);
+      // if the last slide is partially visible and not fully visible
+      if (!spec.infinite && visibility.partiallyVisible && !visibility.rightVisible) {
+        targetLeft = targetSlide ? (targetSlide.offsetLeft - (spec.listRef.getBoundingClientRect().right - visibility.lastSlideRect.left)) * -1 : 0;
       }
-  }
+      if (spec.centerMode === true) {
+        if(spec.infinite === false) {
+            targetSlide = ReactDOM.findDOMNode(spec.trackRef).children[spec.slideIndex];
+        } else {
+            targetSlide = ReactDOM.findDOMNode(spec.trackRef).children[(spec.slideIndex + spec.slidesToShow + 1)];
+        }
+        targetLeft = targetSlide ? targetSlide.offsetLeft * -1 : 0;
+        targetLeft += (spec.listWidth - targetSlide.offsetWidth) / 2;
+      }
+    }
 
   return targetLeft;
 };

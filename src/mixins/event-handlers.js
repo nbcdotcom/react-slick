@@ -1,6 +1,5 @@
 'use strict';
 import {getTrackCSS, getTrackLeft, getTrackAnimateCSS} from './trackHelper';
-import helpers from './helpers';
 import assign from 'object-assign';
 import ReactDOM from 'react-dom';
 
@@ -41,7 +40,7 @@ var EventHandlers = {
 
     this.slideHandler(targetSlide);
   },
- 
+
   // Accessiblity handler for previous and next
   keyHandler: function (e) {
     //Dont slide if the cursor is inside the form fields and arrow keys are pressed
@@ -92,10 +91,10 @@ var EventHandlers = {
     var swipeLeft;
     var curLeft, positionOffset;
     var touchObject = this.state.touchObject;
-
     curLeft = getTrackLeft(assign({
       slideIndex: this.state.currentSlide,
-      trackRef: this.track
+      trackRef: this.track,
+      listRef: this.list
     }, this.props, this.state));
     touchObject.curX = (e.touches) ? e.touches[0].pageX : e.clientX;
     touchObject.curY = (e.touches) ? e.touches[0].pageY : e.clientY;
@@ -145,7 +144,7 @@ var EventHandlers = {
     this.setState({
       touchObject: touchObject,
       swipeLeft: swipeLeft,
-      trackStyle: getTrackCSS(assign({left: swipeLeft}, this.props, this.state))
+      trackStyle: getTrackCSS(assign({}, {left: swipeLeft}, this.props, this.state))
     });
 
     if (Math.abs(touchObject.curX - touchObject.startX) < Math.abs(touchObject.curY - touchObject.startY) * 0.8)
@@ -284,13 +283,14 @@ var EventHandlers = {
       this.slideHandler(slideCount);
     } else {
       // Adjust the track back to it's original position.
-      var currentLeft = getTrackLeft(assign({
+      var currentLeft =  getTrackLeft(assign({},{
         slideIndex: this.state.currentSlide,
-        trackRef: this.track
+        trackRef: this.track,
+        listRef: this.list
       }, this.props, this.state));
 
       this.setState({
-        trackStyle: getTrackAnimateCSS(assign({left: currentLeft}, this.props, this.state))
+        trackStyle: getTrackAnimateCSS(assign({}, {left: currentLeft}, this.props, this.state))
       });
     }
   },
