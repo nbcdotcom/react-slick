@@ -261,7 +261,7 @@ var helpers = {
       var nextStateChanges = {
         animating: false,
         currentSlide: currentSlide,
-        trackStyle: getTrackAnimateCSS(assign({}, {currentSlide, left: targetLeft}, this.props, this.state)),
+        trackStyle: getTrackCSS(assign({left: currentLeft}, this.props, this.state)),
         swipeLeft: null
       };
 
