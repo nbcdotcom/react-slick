@@ -5,31 +5,36 @@
 
 Carousel component built with React. It is a react port of [slick carousel](http://kenwheeler.github.io/slick/)
 
-# Road to 1.0
-react-slick is under active development now.
-Soon this project will have all the features of slick carousel.
-We encourage your feedback and support.
+
 
 ### Installation
+
 ```bash
-  npm install react-slick
-```
-Also install slick-carousel for css and font
-```bash
-  bower install slick-carousel
-```
-or add cdn link in your html
-```
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.3.15/slick.css" />
+npm install react-slick
 ```
 
-### [Demos](http://webrafter.com/opensource/react-slick)
+Also install slick-carousel for css and font
+
+```bash
+npm install slick-carousel
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+```
+
+or add cdn link in your html
+
+```html
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.css" />
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css" />
+```
+
+### [Demos](http://neostack.com/opensource/react-slick)
 
 ### [PlayGround](https://jsfiddle.net/kirana/20bumb4g/)
 Use [jsfiddle template](https://jsfiddle.net/kirana/20bumb4g/) to try react-slick with different settings.
 
-### Filling issues
-Please replicate your issue with [jsfiddile template](https://jsfiddle.net/kirana/20bumb4g/) and post it along with issue to make it easy for me to debug.
+### Filing issues
+Please replicate your issue with [jsfiddle template](https://jsfiddle.net/kirana/20bumb4g/) and post it along with issue to make it easy for me to debug.
 
 
 ### Starter Kit
@@ -37,11 +42,12 @@ Checkout [yeoman generator](https://github.com/akiran/generator-react-slick) to 
 get started with react-slick.
 
 ### Example
+
 ```js
 var React = require('react');
 var Slider = require('react-slick');
 
-var SimpleSlider = React.createClass({
+class SimpleSlider extends React.Component {
   render: function () {
     var settings = {
       dots: true,
@@ -61,30 +67,33 @@ var SimpleSlider = React.createClass({
       </Slider>
     );
   }
-});
+}
 ```
 
 |    Property    | Type |          Description          | Working |
 | -------------  | ---- |          -----------          | ------- |
+| accessibility  | bool | Enables tabbing and arrow key navigation | Yes |
 | className      | String |Additional class name for the inner slider div | Yes |
 | adaptiveHeight | bool | Adjust the slide's height automatically | Yes |
 | arrows         | bool | Should we show Left and right nav arrows | Yes |
-| nextArrow      | React Component | Use this component for the next arrow button | Yes |
-| prevArrow      | React Component | Use this component for the prev arrow button | Yes |
+| nextArrow      | React Element | Use this element for the next arrow button | Yes |
+| prevArrow      | React Element | Use this element for the prev arrow button | Yes |
 | autoplay       | bool | Should the scroller auto scroll? | Yes |
 | autoplaySpeed  |  int | delay between each auto scoll. in ms | Yes |
 | centerMode     | bool | Should we centre to a single item? | Yes |
 | centerPadding  | | | |
 | cssEase        | | | |
+| customPaging   | func | Custom paging templates. [Example](https://github.com/akiran/react-slick/blob/master/examples/CustomPaging.js)| Yes |
 | dots           | bool | Should we show the dots at the bottom of the gallery | Yes |
 | dotsClass      | string | Class applied to the dots if they are enabled | Yes |
 | draggable      | bool | Is the gallery scrollable via dragging on desktop? | Yes |
 | easing         | string | | |
 | fade           | bool | Slides use fade for transition  | Yes |
-| focusOnSelect  | bool | | |
+| focusOnSelect  | bool | Go to slide on click | Yes |
 | infinite       | bool | should the gallery wrap around it's contents | Yes |
 | initialSlide   | int | which item should be the first to be displayed | Yes |
 | lazyLoad       | bool | Loads images or renders components on demands | Yes |
+| pauseOnHover   | bool | prevents autoplay while hovering | Yes |
 | responsive     | array | Array of objects in the form of `{ breakpoint: int, settings: { ... } }` The breakpoint _int_ is the `maxWidth` so the settings will be applied when resolution is below this value. Breakpoints in the array should be ordered from smalles to greatest. Use 'unslick' in place of the settings object to disable rendering the carousel at that breakpoint. Example: `[ { breakpoint: 768, settings: { slidesToShow: 3 } }, { breakpoint: 1024, settings: { slidesToShow: 5 } }, { breakpoint: 100000, settings: 'unslick' } ]`| Yes |
 | rtl            | bool | Reverses the slide order | Yes |
 | slide         | string |||
@@ -92,47 +101,83 @@ var SimpleSlider = React.createClass({
 | slidesToScroll | int | Number of slides to scroll for each navigation item
 | speed | int |||
 | swipe | bool |||
-| swipeToSlide | bool |||
+| swipeToSlide | bool | Allow users to drag or swipe directly to a slide irrespective of slidesToScroll | Yes |
 | touchMove | bool |||
 | touchThreshold | int |||
 | variableWidth | bool |||
 | useCSS | bool | Enable/Disable CSS Transitions | Yes |
-| vertical | bool |||
+| vertical | bool | Vertical slide mode | Yes |
 | afterChange | function | callback function called after the current index changes | Yes |
 | beforeChange | function | callback function called before the current index changes | Yes |
-| slickGoTo | int | go to the specified slide number
+| slickGoTo | int | go to the specified slide number | |
+
+
+### Methods
+* `slickNext()`   - function called to change current slide on next slide ([Example](https://github.com/akiran/react-slick/blob/master/examples/PreviousNextMethods.js))
+* `slickPrev()`   - function called to change current slide on previous slide ([Example](https://github.com/akiran/react-slick/blob/master/examples/PreviousNextMethods.js))
+* `slickGoTo(slideNumber)` - function called to change current slide to given slide number ([Example](https://github.com/akiran/react-slick/blob/master/examples/SlickGoTo.js))
 
 ### Custom next/prev arrows
 
 To customize the next/prev arrow elements, simply create new React components and set them
 as the values of nextArrow and prevArrow.
 
-````
+```js
 class LeftNavButton extends React.Component {
   render() {
-    return <button {...this.props}>Next</button>  
+    return <button {...this.props}>Next</button>
   }
 }
-
-````
+```
 
 Important: be sure that you pass your component's props to your clickable element
 like the example above. If you don't, your custom component won't trigger the click handler.
 
-You can also set onClick={this.props.onClick} if you only want to set the click handler. 
+You can also set `onClick={this.props.onClick}` if you only want to set the click handler.
+
+### Flexbox support
+If you have flex property on container div of slider, add below css
+```css
+* {
+  min-height: 0;
+  min-width: 0;
+}
+```
+
+### Test Setup
+If you try to run tests with jest in a project that uses react-slick, you my run into this error
+```
+matchMedia not present, legacy browsers require a polyfill
+```
+
+To fix this issue add below snippet in test-setup.js
+```js
+window.matchMedia = window.matchMedia || function() {
+    return {
+        matches : false,
+        addListener : function() {},
+        removeListener: function() {}
+    };
+};
+
+```
+and add below jest config in package.json
+```json
+"jest": {
+    "setupFiles": ["test-setup.js"]
+}
+```
 
 
 ### Development
 Want to run demos locally
-```
+
+```bash
 git clone https://github.com/akiran/react-slick
 npm install
 npm start
-open http://localhost:8000
+open http://localhost:8080
 ```
 
 ### Polyfills for old IE support
 `matchMedia` support from [media-match](https://github.com/weblinc/media-match)
-
-For premium support, contact me on codementor
-[![Contact me on Codementor](https://cdn.codementor.io/badges/contact_me_github.svg)](https://www.codementor.io/akiran?utm_source=github&utm_medium=button&utm_term=akiran&utm_campaign=github)

@@ -4,17 +4,27 @@ import React from 'react';
 import {InnerSlider} from './inner-slider';
 import assign from 'object-assign';
 import json2mq from 'json2mq';
-import ResponsiveMixin from 'react-responsive-mixin';
 import defaultProps from './default-props';
+import canUseDOM from 'can-use-dom';
+const enquire = canUseDOM && require('enquire.js');
 
-var Slider = React.createClass({
-  mixins: [ResponsiveMixin],
-  getInitialState: function () {
-    return {
+export default class Slider extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       breakpoint: null
     };
-  },
-  componentDidMount: function () {
+    this._responsiveMediaHandlers = [];
+    this.innerSliderRefHandler = this.innerSliderRefHandler.bind(this)
+  }
+  innerSliderRefHandler(ref) {
+    this.innerSlider = ref;
+  }
+  media(query, handler) {
+    enquire.register(query, handler);
+    this._responsiveMediaHandlers.push({query, handler});
+  }
+  componentWillMount() {
     if (this.props.responsive) {
       var breakpoints = this.props.responsive.map(breakpt => breakpt.breakpoint);
       breakpoints.sort((x, y) => x - y);
@@ -26,20 +36,39 @@ var Slider = React.createClass({
         } else {
           bQuery = json2mq({minWidth: breakpoints[index-1], maxWidth: breakpoint});
         }
-        this.media(bQuery, () => {
+        canUseDOM && this.media(bQuery, () => {
           this.setState({breakpoint: breakpoint});
-        });
+        })
       });
 
       // Register media query for full screen. Need to support resize from small to large
       var query = json2mq({minWidth: breakpoints.slice(-1)[0]});
 
-      this.media(query, () => {
+      canUseDOM && this.media(query, () => {
         this.setState({breakpoint: null});
       });
     }
-  },
-  render: function () {
+  }
+
+  componentWillUnmount() {
+    this._responsiveMediaHandlers.forEach(function(obj) {
+      enquire.unregister(obj.query, obj.handler);
+    });
+  }
+
+  slickPrev() {
+    this.innerSlider.slickPrev();
+  }
+
+  slickNext() {
+    this.innerSlider.slickNext();
+  }
+
+  slickGoTo(slide) {
+    this.innerSlider.slickGoTo(slide)
+  }
+
+  render() {
     var settings;
     var newProps;
     if (this.state.breakpoint) {
@@ -48,19 +77,28 @@ var Slider = React.createClass({
     } else {
       settings = assign({}, defaultProps, this.props);
     }
+
+    var children = this.props.children;
+    if(!Array.isArray(children)) {
+      children = [children]
+    }
+
+    // Children may contain false or null, so we should filter them
+    children = children.filter(function(child){
+      return !!child
+    })
+
     if (settings === 'unslick') {
       // if 'unslick' responsive breakpoint setting used, just return the <Slider> tag nested HTML
       return (
-        <div>{this.props.children}</div>
+        <div>{children}</div>
       );
     } else {
       return (
-        <InnerSlider {...settings}>
-          {this.props.children}
+        <InnerSlider ref={this.innerSliderRefHandler} {...settings}>
+          {children}
         </InnerSlider>
       );
     }
   }
-});
-
-module.exports = Slider;
+}
