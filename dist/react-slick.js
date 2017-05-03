@@ -483,6 +483,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.__esModule = true;
 
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 	var _trackHelper = __webpack_require__(5);
 
 	var _helpers = __webpack_require__(8);
@@ -704,31 +706,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var centerOffset = this.props.centerMode ? this.state.slideWidth * Math.floor(this.props.slidesToShow / 2) : 0;
 
 	    if (this.props.swipeToSlide) {
-	      var swipedSlide = void 0;
+	      var _ret = function () {
+	        var swipedSlide = void 0;
 
-	      var slickList = _reactDom2.default.findDOMNode(this.list);
+	        var slickList = _reactDom2.default.findDOMNode(_this.list);
 
-	      var slides = slickList.querySelectorAll('.slick-slide');
+	        var slides = slickList.querySelectorAll('.slick-slide');
 
-	      Array.from(slides).every(function (slide) {
-	        if (!_this.props.vertical) {
-	          if (slide.offsetLeft - centerOffset + _this.getWidth(slide) / 2 > _this.state.swipeLeft * -1) {
-	            swipedSlide = slide;
-	            return false;
+	        Array.from(slides).every(function (slide, index) {
+	          if (!_this.props.vertical) {
+	            if (slide.offsetLeft - centerOffset + _this.getWidth(slide) / 2 > _this.state.swipeLeft * -1) {
+	              swipedSlide = slide;
+	              return false;
+	            }
+	            // NBC - fix issue where error is thrown when `swipedSlide` is undefined
+	            else if (!swipedSlide && index === slides.length - 1) {
+	                swipedSlide = slide;
+	                return false;
+	              }
+	          } else {
+	            if (slide.offsetTop + _this.getHeight(slide) / 2 > _this.state.swipeLeft * -1) {
+	              swipedSlide = slide;
+	              return false;
+	            }
 	          }
-	        } else {
-	          if (slide.offsetTop + _this.getHeight(slide) / 2 > _this.state.swipeLeft * -1) {
-	            swipedSlide = slide;
-	            return false;
-	          }
-	        }
 
-	        return true;
-	      });
+	          return true;
+	        });
 
-	      var slidesTraversed = Math.abs(swipedSlide.dataset.index - this.state.currentSlide) || 1;
+	        var slidesTraversed = Math.abs(swipedSlide.dataset.index - _this.state.currentSlide) || 1;
 
-	      return slidesTraversed;
+	        return {
+	          v: slidesTraversed
+	        };
+	      }();
+
+	      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	    } else {
 	      return this.props.slidesToScroll;
 	    }

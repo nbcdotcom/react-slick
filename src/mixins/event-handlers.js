@@ -208,9 +208,14 @@ var EventHandlers = {
 
       const slides = slickList.querySelectorAll('.slick-slide');
 
-      Array.from(slides).every((slide) => {
+      Array.from(slides).every((slide, index) => {
         if (!this.props.vertical) {
           if (slide.offsetLeft - centerOffset + (this.getWidth(slide) / 2) > this.state.swipeLeft * -1) {
+            swipedSlide = slide;
+            return false;
+          }
+          // NBC - fix issue where error is thrown when `swipedSlide` is undefined
+          else if (!swipedSlide && index === slides.length - 1) {
             swipedSlide = slide;
             return false;
           }
